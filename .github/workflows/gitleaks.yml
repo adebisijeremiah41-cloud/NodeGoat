@@ -10,14 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for leak detection
       - name: Run Gitleaks
         uses: zricethezav/gitleaks-action@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          args: --report=gitleaks-report.json --redact
-      - name: Upload gitleaks report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # For PR comments (auto-provided)
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true     # Uploads SARIF report
+      - name: Upload gitleaks report  # Optional: Custom upload if needed
+        if: always()  # Runs even on findings
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
-          path: gitleaks-report.json
-          
+          path: gitleaks-results.sarif  # Matches action's output
